@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Order Request</title>
+</head>
+
+    <p>Dear Admin,</p>
+    <p>The following Order with ID: '<span th:text="${data.id}"></span>'
+        has been received at <span th:text="${data.createdAt}"></span>
+    </p>
+    <p>Ordered By: <strong th:text="${data.customerName}"></strong></p>
+    <p>Email: <strong th:text="${data.email}"></strong></p>
+    <p>Address: <strong th:text="${data.shippingAddress}"></strong></p>
+    <p>Near: <strong th:text="${data.locationReference}"></strong></p>
+    <p>Items: </p>
+    <ul>
+        <li th:each="item : ${data.itemNames}" th:text="${item}"></li>
+    </ul>
+    <p>Quantity: <strong th:text="${data.quantity}"></strong></p>
+    <p>To review dispatch this request, please head to the following link below: </p>
+    <a href="@{${data.searchUrl}}" th:text="${data.friendlyUrl}"></a>
+
+    <p>Thanks luv :)</p>
+
+</html>
