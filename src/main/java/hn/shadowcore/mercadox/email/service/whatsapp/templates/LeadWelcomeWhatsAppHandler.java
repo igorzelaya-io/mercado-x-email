@@ -1,0 +1,40 @@
+package hn.shadowcore.mercadox.email.service.whatsapp.templates;
+
+
+import hn.shadowcore.mercadox.email.service.whatsapp.AbstractWhatsAppNotificationHandler;
+import hn.shadowcore.mercadoxlibrary.entity.model.enums.NotificationTemplateName;
+import hn.shadowcore.mercadoxlibrary.entity.model.enums.kafka.event.LeadCreatedEvent;
+import hn.shadowcore.mercadoxlibrary.entity.response.dto.NotificationRequest;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+@Component
+public class LeadWelcomeWhatsAppHandler
+        implements AbstractWhatsAppNotificationHandler<LeadCreatedEvent> {
+
+    @Override
+    public Class<LeadCreatedEvent> eventType() {
+        return LeadCreatedEvent.class;
+    }
+
+    @Override
+    public String templateKey() {
+        return NotificationTemplateName.LEAD_CREATION_TEMPLATE.name();
+    }
+
+    @Override
+    public NotificationRequest buildRequest(LeadCreatedEvent event) {
+        Map<String, String> variables = Map.of(
+                "userName", event.getUserName(),
+                "orgName", event.getOrgName()
+        );
+
+        return new NotificationRequest(
+                event.getOrgId(),
+                templateKey(),
+                event.getPhoneNumber(),
+                variables
+        );
+    }
+}
