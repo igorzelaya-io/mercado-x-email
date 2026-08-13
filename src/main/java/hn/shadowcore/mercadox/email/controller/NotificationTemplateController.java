@@ -1,9 +1,9 @@
 package hn.shadowcore.mercadox.email.controller;
 
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
-import hn.shadowcore.mercadoxlibrary.entity.model.core.NotificationTemplate;
-import hn.shadowcore.mercadoxlibrary.entity.response.BaseResponseDto;
-import hn.shadowcore.mercadoxlibrary.entity.response.Response;
+import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
+import hn.shadowcore.mercadox.library.entity.response.BaseResponseDto;
+import hn.shadowcore.mercadox.library.entity.response.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

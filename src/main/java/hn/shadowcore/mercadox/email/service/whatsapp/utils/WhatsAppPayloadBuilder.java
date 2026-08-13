@@ -1,7 +1,7 @@
 package hn.shadowcore.mercadox.email.service.whatsapp.utils;
 
-import hn.shadowcore.mercadoxlibrary.entity.model.core.NotificationTemplate;
-import hn.shadowcore.mercadoxlibrary.entity.response.dto.NotificationRequest;
+import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
+import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 
 import java.util.List;
 import java.util.Map;

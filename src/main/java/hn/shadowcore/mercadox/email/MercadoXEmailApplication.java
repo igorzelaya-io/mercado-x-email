@@ -1,19 +1,19 @@
 package hn.shadowcore.mercadox.email;
 
+import hn.shadowcore.mercadox.context.config.JwtConfig;
+import hn.shadowcore.mercadox.oauth.service.OAuthTenantValidatorService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
 
+@EnableAsync
 @EnableCaching
 @SpringBootApplication
-@ComponentScan(basePackages={
-        "hn.shadowcore.mercadoxoauth",
-        "hn.shadowcore.mercadoxlibrary",
-        "hn.shadowcore.mercadoxcontext"
-})
-@EntityScan(basePackages = "hn.shadowcore.mercadoxlibrary")
+@Import({OAuthTenantValidatorService.class, JwtConfig.class})
+@EntityScan(basePackages = "hn.shadowcore.mercadox.library")
 public class MercadoXEmailApplication {
 
     public static void main(String[] args) {
