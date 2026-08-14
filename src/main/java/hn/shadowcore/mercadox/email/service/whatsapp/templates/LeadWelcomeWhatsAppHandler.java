@@ -2,9 +2,9 @@ package hn.shadowcore.mercadox.email.service.whatsapp.templates;
 
 
 import hn.shadowcore.mercadox.email.service.whatsapp.AbstractWhatsAppNotificationHandler;
-import hn.shadowcore.mercadoxlibrary.entity.model.enums.NotificationTemplateName;
-import hn.shadowcore.mercadoxlibrary.entity.model.enums.kafka.event.LeadCreatedEvent;
-import hn.shadowcore.mercadoxlibrary.entity.response.dto.NotificationRequest;
+import hn.shadowcore.mercadox.library.entity.model.enums.NotificationTemplateName;
+import hn.shadowcore.mercadox.library.entity.model.enums.kafka.event.LeadCreatedEvent;
+import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

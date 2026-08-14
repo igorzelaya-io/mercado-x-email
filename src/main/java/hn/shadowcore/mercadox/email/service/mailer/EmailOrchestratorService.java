@@ -2,10 +2,10 @@ package hn.shadowcore.mercadox.email.service.mailer;
 
 import hn.shadowcore.mercadox.email.util.TemplateVariableValidator;
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
-import hn.shadowcore.mercadoxlibrary.entity.model.core.NotificationTemplate;
-import hn.shadowcore.mercadoxlibrary.entity.model.enums.TemplateChannel;
-import hn.shadowcore.mercadoxlibrary.entity.response.dto.EmailEventDto;
-import hn.shadowcore.mercadoxlibrary.entity.response.dto.EmailRecipientDto;
+import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
+import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
+import hn.shadowcore.mercadox.library.entity.response.dto.EmailEventDto;
+import hn.shadowcore.mercadox.library.entity.response.dto.EmailRecipientDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -17,13 +17,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmailOrchestratorService {
 
-    private NotificationTemplateService notificationTemplateService;
+    private final NotificationTemplateService notificationTemplateService;
 
-    private TemplateVariableValidator templateVariableValidator;
+    private final TemplateVariableValidator templateVariableValidator;
 
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
 
-    private MailService mailService;
+    private final MailService mailService;
 
     public <T> void sendToMultipleRecipients(EmailEventDto<T> eventDto, String templateName) {
         NotificationTemplate template = findTemplate(templateName);

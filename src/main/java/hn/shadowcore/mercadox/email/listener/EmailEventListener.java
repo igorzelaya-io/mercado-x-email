@@ -1,12 +1,11 @@
 package hn.shadowcore.mercadox.email.listener;
 
 import hn.shadowcore.mercadox.email.service.mailer.EmailOrchestratorService;
-import hn.shadowcore.mercadoxcontext.utils.annotations.KafkaIdempotent;
-import hn.shadowcore.mercadoxcontext.utils.annotations.KafkaOrgIdPropagated;
-import hn.shadowcore.mercadoxlibrary.entity.model.enums.kafka.KafkaTopic;
-import hn.shadowcore.mercadoxlibrary.entity.response.EventDto;
-import hn.shadowcore.mercadoxlibrary.entity.response.dto.EmailEventDto;
-import hn.shadowcore.mercadoxlibrary.entity.response.dto.OrderDto;
+import hn.shadowcore.mercadox.context.utils.annotations.KafkaIdempotent;
+import hn.shadowcore.mercadox.context.utils.annotations.KafkaOrgIdPropagated;
+import hn.shadowcore.mercadox.library.entity.model.enums.kafka.KafkaTopic;
+import hn.shadowcore.mercadox.library.entity.response.dto.EmailEventDto;
+import hn.shadowcore.mercadox.library.entity.response.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -21,33 +20,33 @@ public class EmailEventListener {
     @KafkaIdempotent
     @KafkaOrgIdPropagated
     @KafkaListener(topics = KafkaTopic.USER_REGISTRATION, groupId = "email-service-group")
-    public void handleUserRegistered(ConsumerRecord<String, EventDto<EmailEventDto<String>>> emailEventDto) {
-        orchestrator.sendToMultipleRecipients(emailEventDto.value().getEventPayload(),
-                emailEventDto.value().getEventPayload().getEmailTemplate().name());
+    public void handleUserRegistered(ConsumerRecord<String, EmailEventDto<String>> emailEventDto) {
+        orchestrator.sendToMultipleRecipients(emailEventDto.value(),
+                emailEventDto.value().getEmailTemplate().name());
     }
-    
+
     @KafkaIdempotent
     @KafkaOrgIdPropagated
     @KafkaListener(topics = KafkaTopic.ORDER_PLACING, groupId = "email-service-group")
-    public void handleOrderPlaced(ConsumerRecord<String, EventDto<EmailEventDto<OrderDto>>> eventDto) {
-        orchestrator.sendToMultipleRecipients(eventDto.value().getEventPayload(),
-                eventDto.value().getEventPayload().getEmailTemplate().name());
+    public void handleOrderPlaced(ConsumerRecord<String, EmailEventDto<OrderDto>> eventDto) {
+        orchestrator.sendToMultipleRecipients(eventDto.value(),
+                eventDto.value().getEmailTemplate().name());
     }
 
     @KafkaIdempotent
     @KafkaOrgIdPropagated
     @KafkaListener(topics = KafkaTopic.ORDER_CONFIRMED, groupId = "email-service-group")
-    public void handlerOrderConfirmed(ConsumerRecord<String, EventDto<EmailEventDto<OrderDto>>> eventDto) {
-        orchestrator.sendToMultipleRecipients(eventDto.value().getEventPayload(),
-                eventDto.value().getEventPayload().getEmailTemplate().name());
+    public void handlerOrderConfirmed(ConsumerRecord<String, EmailEventDto<OrderDto>> eventDto) {
+        orchestrator.sendToMultipleRecipients(eventDto.value(),
+                eventDto.value().getEmailTemplate().name());
     }
 
     @KafkaIdempotent
     @KafkaOrgIdPropagated
     @KafkaListener(topics = KafkaTopic.ORDER_CANCELLED, groupId = "email-service-group")
-    public void handleOrderCancelled(ConsumerRecord<String, EventDto<EmailEventDto<OrderDto>>> eventDto) {
-        orchestrator.sendToMultipleRecipients(eventDto.value().getEventPayload(),
-                eventDto.value().getEventPayload().getEmailTemplate().name());
+    public void handleOrderCancelled(ConsumerRecord<String, EmailEventDto<OrderDto>> eventDto) {
+        orchestrator.sendToMultipleRecipients(eventDto.value(),
+                eventDto.value().getEmailTemplate().name());
     }
 
 }

@@ -1,11 +1,12 @@
 package hn.shadowcore.mercadox.email.config;
 
-import hn.shadowcore.mercadoxcontext.filter.JwtAuthFilter;
-import hn.shadowcore.mercadoxcontext.filter.OrgIdContextFilter;
+import hn.shadowcore.mercadox.context.filter.JwtAuthFilter;
+import hn.shadowcore.mercadox.context.filter.TenantValidatorFilter;
+import hn.shadowcore.mercadox.context.security.JwtVerifier;
+import hn.shadowcore.mercadox.context.validator.AnonymousTenantValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,24 +19,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Import({JwtAuthFilter.class, OrgIdContextFilter.class})
 public class MercadoXEmailOAuthConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
+    private final JwtVerifier jwtVerifier;
 
-    private final OrgIdContextFilter orgIdContextFilter;
+    private final AnonymousTenantValidator anonymousTenantValidator;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         return http.csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/public/**").permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(orgIdContextFilter, JwtAuthFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .addFilterBefore(new TenantValidatorFilter(jwtVerifier, anonymousTenantValidator), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new JwtAuthFilter(jwtVerifier), TenantValidatorFilter.class).build();
 
     }
 

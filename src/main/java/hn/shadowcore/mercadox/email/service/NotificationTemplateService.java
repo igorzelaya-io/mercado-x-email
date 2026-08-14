@@ -1,9 +1,9 @@
 package hn.shadowcore.mercadox.email.service;
 
 
-import hn.shadowcore.mercadoxlibrary.entity.model.core.NotificationTemplate;
-import hn.shadowcore.mercadoxlibrary.entity.model.enums.TemplateChannel;
-import hn.shadowcore.mercadoxlibrary.jpa.repository.NotificationTemplateRepository;
+import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
+import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
+import hn.shadowcore.mercadox.library.jpa.repository.NotificationTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
