@@ -6,8 +6,8 @@ import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
 import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
 import hn.shadowcore.mercadox.library.entity.model.enums.kafka.event.DomainEvent;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -17,14 +17,20 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class WhatsAppNotificationService {
 
     private final WebClient webClient;
-
     private final NotificationTemplateService notificationTemplateService;
-
     private final List<AbstractWhatsAppNotificationHandler<?>> handlers;
+
+    public WhatsAppNotificationService(
+            @Qualifier("whatsAppWebClient") WebClient webClient,
+            NotificationTemplateService notificationTemplateService,
+            List<AbstractWhatsAppNotificationHandler<?>> handlers) {
+        this.webClient = webClient;
+        this.notificationTemplateService = notificationTemplateService;
+        this.handlers = handlers;
+    }
 
     private static final TemplateChannel TEMPLATE_CHANNEL = TemplateChannel.WHATSAPP;
 

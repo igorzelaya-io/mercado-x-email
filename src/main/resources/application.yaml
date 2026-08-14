@@ -30,6 +30,11 @@ spring:
       group-id: email-service-group
     listener:
       missing-topics-fatal: false
+whatsapp:
+  api:
+    base-url: ${WHATSAPP_API_BASE_URL:https://graph.facebook.com/v20.0/mock-phone-id}
+    token: ${WHATSAPP_API_TOKEN:mock-token}
+
 security:
   jwt:
     public-key-location: ${JWT_PUBLIC_KEY_LOCATION:file:./secrets/public.pem}
