@@ -1,5 +1,5 @@
 server:
-  port: 8085
+  port: 8082
 
 spring:
   datasource:
@@ -34,6 +34,9 @@ whatsapp:
   api:
     base-url: ${WHATSAPP_API_BASE_URL:https://graph.facebook.com/v20.0/mock-phone-id}
     token: ${WHATSAPP_API_TOKEN:mock-token}
+
+kafka:
+  schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8085}
 
 security:
   jwt:

@@ -12,5 +12,15 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
   kafka:
+    producer:
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     consumer:
       auto-offset-reset: earliest
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific.avro.reader: true
+    properties:
+      schema.registry.url: mock://test-scope
+
+kafka:
+  schema-registry-url: mock://test-scope

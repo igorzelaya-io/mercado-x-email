@@ -1,9 +1,9 @@
 package hn.shadowcore.mercadox.email.service.whatsapp;
 
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
+import hn.shadowcore.mercadox.library.entity.avro.LeadCreatedEvent;
 import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
 import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
-import hn.shadowcore.mercadox.library.entity.model.enums.kafka.event.LeadCreatedEvent;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,8 +44,16 @@ class WhatsAppNotificationServiceTest {
 
     @BeforeEach
     void setUp() {
-        event = new LeadCreatedEvent("MercadoX", "Igor", "igor@example.com", "+50499998888");
-        event.setOrgId("org-123");
+        event = LeadCreatedEvent.newBuilder()
+                .setOrgName("MercadoX")
+                .setUserName("Igor")
+                .setEmail("igor@example.com")
+                .setPhoneNumber("+50499998888")
+                .setOrgId("org-123")
+                .setEventId(java.util.UUID.randomUUID().toString())
+                .setEventType("LEAD_CREATED")
+                .setOccurredAt(java.time.Instant.now().toString())
+                .build();
 
         request = NotificationRequest.builder()
                 .orgId("org-123")

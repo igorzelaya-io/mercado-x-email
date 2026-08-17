@@ -4,8 +4,8 @@ import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
 import hn.shadowcore.mercadox.email.service.whatsapp.utils.WhatsAppPayloadBuilder;
 import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
 import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
-import hn.shadowcore.mercadox.library.entity.model.enums.kafka.event.DomainEvent;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
+import org.apache.avro.specific.SpecificRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class WhatsAppNotificationService {
 
     private static final TemplateChannel TEMPLATE_CHANNEL = TemplateChannel.WHATSAPP;
 
-    public <T extends DomainEvent> void handle(T event) {
+    public void handle(SpecificRecord event) {
 
         final AbstractWhatsAppNotificationHandler handler = handlers.stream()
                 .filter(h -> h.eventType().equals(event.getClass()))

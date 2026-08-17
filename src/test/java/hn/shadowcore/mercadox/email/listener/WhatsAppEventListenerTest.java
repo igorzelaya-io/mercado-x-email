@@ -2,7 +2,7 @@ package hn.shadowcore.mercadox.email.listener;
 
 import hn.shadowcore.mercadox.email.service.mailer.EmailOrchestratorService;
 import hn.shadowcore.mercadox.email.service.whatsapp.WhatsAppNotificationService;
-import hn.shadowcore.mercadox.library.entity.model.enums.kafka.event.LeadCreatedEvent;
+import hn.shadowcore.mercadox.library.entity.avro.LeadCreatedEvent;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -142,12 +141,15 @@ class WhatsAppEventListenerTest {
     }
 
     private LeadCreatedEvent buildEvent(String eventId) {
-        LeadCreatedEvent event = new LeadCreatedEvent
-                ("MercadoX", "Igor", "igor@example.com", "+50499998888");
-        event.setEventId(eventId);
-        event.setEventType("LEAD_CREATED");
-        event.setOrgId("org-001");
-        event.setOccurredAt(Instant.now().toString());
-        return event;
+        return LeadCreatedEvent.newBuilder()
+                .setOrgName("MercadoX")
+                .setUserName("Igor")
+                .setEmail("igor@example.com")
+                .setPhoneNumber("+50499998888")
+                .setOrgId("org-001")
+                .setEventId(eventId)
+                .setEventType("LEAD_CREATED")
+                .setOccurredAt(java.time.Instant.now().toString())
+                .build();
     }
 }
