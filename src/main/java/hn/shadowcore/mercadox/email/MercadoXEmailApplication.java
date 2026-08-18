@@ -11,7 +11,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableAsync
 @EnableCaching
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+        "hn.shadowcore.mercadox.email",
+        "hn.shadowcore.mercadox.context",
+        "hn.shadowcore.mercadox.library"
+})
 @Import({OAuthTenantValidatorService.class, JwtConfig.class})
 @EntityScan(basePackages = "hn.shadowcore.mercadox.library")
 public class MercadoXEmailApplication {

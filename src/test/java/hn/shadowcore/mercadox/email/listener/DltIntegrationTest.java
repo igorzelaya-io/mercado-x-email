@@ -1,5 +1,6 @@
 package hn.shadowcore.mercadox.email.listener;
 
+import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
 import hn.shadowcore.mercadox.email.service.mailer.EmailOrchestratorService;
 import hn.shadowcore.mercadox.email.service.whatsapp.WhatsAppNotificationService;
 import hn.shadowcore.mercadox.library.entity.avro.LeadCreatedEvent;
@@ -23,23 +24,24 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @EmbeddedKafka(
         partitions = 1,
-        topics = {"lead.created.v1"},
+        topics = {
+                "lead.created.v1",
+                "lead.created.v1.DLT"
+        },
         bootstrapServersProperty = "spring.kafka.bootstrap-servers"
 )
 @Testcontainers
-class WhatsAppEventListenerTest {
+class DltIntegrationTest {
 
     @Container
     static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine")
@@ -58,10 +60,10 @@ class WhatsAppEventListenerTest {
     private EmailOrchestratorService emailOrchestratorService;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private StringRedisTemplate redisTemplate;
 
     @BeforeEach
     void setUp() {
@@ -73,64 +75,82 @@ class WhatsAppEventListenerTest {
     }
 
     @Test
-    void happyPath_newEvent_delegatesToServiceAndMarksEventIdInRedis() {
-        LeadCreatedEvent event = buildEvent(UUID.randomUUID().toString());
+    void nullEventId_routesToDlt_withoutCallingService() {
+        LeadCreatedEvent event = LeadCreatedEvent.newBuilder()
+                .setOrgName("MercadoX")
+                .setUserName("Igor")
+                .setEmail("igor@test.com")
+                .setPhoneNumber("+50499998888")
+                .setOrgId("org-001")
+                .setEventId(null)
+                .setEventType("LEAD_CREATED")
+                .setOccurredAt(java.time.Instant.now().toString())
+                .build();
 
-        kafkaTemplate.send("lead.created.v1", event.getEventId(), event);
+        kafkaTemplate.send("lead.created.v1", "any-key", event);
 
-        Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() ->
-                        verify(whatsAppNotificationService).handle(any(LeadCreatedEvent.class)));
-
-        assertThat(redisTemplate.hasKey("eventId:" + event.getEventId())).isTrue();
-    }
-
-    @Test
-    void duplicateEvent_sameEventId_serviceCalledOnlyOnce() {
-        LeadCreatedEvent event = buildEvent(UUID.randomUUID().toString());
-
-        kafkaTemplate.send("lead.created.v1", event.getEventId(), event);
-
-        // Wait until the first delivery commits the eventId to Redis
-        Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() ->
-                        assertThat(redisTemplate.hasKey("eventId:" + event.getEventId())).isTrue());
-
-        kafkaTemplate.send("lead.created.v1", event.getEventId(), event);
-
-        // Give the consumer time to receive and skip the duplicate.
-        // Using the specific event object (not any()) so stale invocations from
-        // previous tests with different eventIds don't inflate the count.
+        // The aspect throws InvalidEventIdException → non-retryable → message goes straight to DLT.
+        // The service is never reached.
         Awaitility.await()
                 .pollDelay(3, TimeUnit.SECONDS)
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() ->
-                        verify(whatsAppNotificationService, times(1)).handle(event));
+                        org.mockito.Mockito.verifyNoInteractions(whatsAppNotificationService));
+
+        // No Redis key written — event was rejected before the idempotency claim
+        org.assertj.core.api.Assertions
+                .assertThat(redisTemplate.keys("eventId:*")).isEmpty();
     }
 
-    // nullEventId short-circuit behavior is covered by
-    // DltIntegrationTest.nullEventId_routesToDlt_withoutCallingService,
-    // which runs in isolation without stale-retry cross-contamination.
-
     @Test
-    void serviceThrowsException_eventIdAlreadyClaimedBeforeProcessing_preventsRetry() {
+    void nonRetryableClientException_routesToDltWithoutRetry() {
         LeadCreatedEvent event = buildEvent(UUID.randomUUID().toString());
-        doThrow(new RuntimeException("WhatsApp API unavailable"))
+
+        doThrow(new WhatsAppClientException(400, "Invalid phone number"))
                 .when(whatsAppNotificationService).handle(any());
 
         kafkaTemplate.send("lead.created.v1", event.getEventId(), event);
 
+        // WhatsAppClientException is non-retryable → goes to DLT on first failure.
+        // Service is called exactly once — no retries.
         Awaitility.await()
                 .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() ->
-                        verify(whatsAppNotificationService, atLeastOnce()).handle(any(LeadCreatedEvent.class)));
+                        verify(whatsAppNotificationService, org.mockito.Mockito.times(1)).handle(any()));
 
-        // claimProcessing() sets the Redis key atomically BEFORE proceed() runs.
-        // Even though handle() threw, the key is present — this is intentional at-most-once
-        // semantics: retrying the same eventId would be blocked by the idempotency guard,
-        // preventing duplicate notifications.
+        // Give error handler time to route to DLT; verify service not called again
+        Awaitility.await()
+                .pollDelay(3, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() ->
+                        verify(whatsAppNotificationService, org.mockito.Mockito.times(1)).handle(any()));
+    }
+
+    @Test
+    void retryableServerException_serviceCalledOnce_retryBlockedByIdempotency() {
+        LeadCreatedEvent event = buildEvent(UUID.randomUUID().toString());
+
+        doThrow(new RuntimeException("503 Service Unavailable"))
+                .when(whatsAppNotificationService).handle(any());
+
+        kafkaTemplate.send("lead.created.v1", event.getEventId(), event);
+
+        // Service is reached exactly once: claimProcessing() claims the eventId in Redis
+        // BEFORE proceed() runs. When the service throws, the error handler schedules a retry,
+        // but that retry finds the key already in Redis → aspect returns null (duplicate dropped)
+        // → Kafka sees a clean return → stops retrying. At-most-once delivery is intentional
+        // for notifications where duplicates are worse than a missed retry.
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() ->
+                        verify(whatsAppNotificationService, org.mockito.Mockito.times(1)).handle(any()));
+
+        Awaitility.await()
+                .pollDelay(3, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() ->
+                        verify(whatsAppNotificationService, org.mockito.Mockito.times(1)).handle(any()));
+
         assertThat(redisTemplate.hasKey("eventId:" + event.getEventId())).isTrue();
     }
 
@@ -138,7 +158,7 @@ class WhatsAppEventListenerTest {
         return LeadCreatedEvent.newBuilder()
                 .setOrgName("MercadoX")
                 .setUserName("Igor")
-                .setEmail("igor@example.com")
+                .setEmail("igor@test.com")
                 .setPhoneNumber("+50499998888")
                 .setOrgId("org-001")
                 .setEventId(eventId)

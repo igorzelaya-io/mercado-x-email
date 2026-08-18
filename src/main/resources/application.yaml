@@ -1,7 +1,9 @@
 server:
-  port: 8085
+  port: 8082
 
 spring:
+  application:
+    name: mercado-x-email
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/mercado_x}
     username: ${DB_USERNAME:postgres}
@@ -34,6 +36,9 @@ whatsapp:
   api:
     base-url: ${WHATSAPP_API_BASE_URL:https://graph.facebook.com/v20.0/mock-phone-id}
     token: ${WHATSAPP_API_TOKEN:mock-token}
+
+kafka:
+  schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8085}
 
 security:
   jwt:
