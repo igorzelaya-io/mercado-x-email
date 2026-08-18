@@ -1,4 +1,6 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   sql:
     init:
       mode: never
@@ -24,3 +26,5 @@ spring:
 
 kafka:
   schema-registry-url: mock://test-scope
+  error-handler:
+    max-retries: 0

@@ -5,6 +5,7 @@ import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class WhatsAppPayloadBuilder {
 
@@ -16,7 +17,9 @@ public final class WhatsAppPayloadBuilder {
     ) {
 
         List<Map<String, String>> parameters =
-                template.getVariables().stream()
+                Optional.ofNullable(template.getVariables())
+                        .orElse(List.of())
+                        .stream()
                         .map(variableName -> Map.of(
                                 "type", "text",
                                 "text", request.getVariables()
