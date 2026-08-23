@@ -36,6 +36,8 @@ whatsapp:
   api:
     base-url: ${WHATSAPP_API_BASE_URL:https://graph.facebook.com/v20.0/mock-phone-id}
     token: ${WHATSAPP_API_TOKEN:mock-token}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:placeholder-verify-token}
+    app-secret: ${WHATSAPP_APP_SECRET:placeholder-app-secret}
 
 kafka:
   schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8085}

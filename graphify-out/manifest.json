@@ -1,0 +1,182 @@
+{
+  ".claude/settings.local.json": {
+    "mtime": 1784836486.2401657,
+    "ast_hash": "c079dcf1a498cb2f8c51a38405b643f2",
+    "semantic_hash": "c079dcf1a498cb2f8c51a38405b643f2"
+  },
+  "mvnw": {
+    "mtime": 1751463050.0613327,
+    "ast_hash": "2fe09837c0b4dfabab4c4b206bcd0850",
+    "semantic_hash": "2fe09837c0b4dfabab4c4b206bcd0850"
+  },
+  "pom.xml": {
+    "mtime": 1786842728.3131695,
+    "ast_hash": "360969a2d17c6809929e439da23cec18",
+    "semantic_hash": "360969a2d17c6809929e439da23cec18"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/MercadoXEmailApplication.java": {
+    "mtime": 1786981490.6317582,
+    "ast_hash": "1420f1213fd83b1b369f6874ea268e3c",
+    "semantic_hash": "1420f1213fd83b1b369f6874ea268e3c"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/config/MercadoXEmailOAuthConfig.java": {
+    "mtime": 1787200689.7680542,
+    "ast_hash": "f8dcc1baccb4d4eaf076007ddba8de42",
+    "semantic_hash": "f8dcc1baccb4d4eaf076007ddba8de42"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/config/WhatsAppErrorHandlerCustomizer.java": {
+    "mtime": 1786988094.0775669,
+    "ast_hash": "1fd14055149ba1bcf3b44613fa21c5bd",
+    "semantic_hash": "1fd14055149ba1bcf3b44613fa21c5bd"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/config/WhatsAppWebClientConfig.java": {
+    "mtime": 1786609875.8508658,
+    "ast_hash": "a1b8d63f2558c1f791ee6cd040b41924",
+    "semantic_hash": "a1b8d63f2558c1f791ee6cd040b41924"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/controller/NotificationTemplateController.java": {
+    "mtime": 1786983941.1035109,
+    "ast_hash": "694ad22d2c3a049ffdf1f1f7d22f2ddc",
+    "semantic_hash": "694ad22d2c3a049ffdf1f1f7d22f2ddc"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/controller/WhatsAppWebhookController.java": {
+    "mtime": 1787201578.6779153,
+    "ast_hash": "e25ebb4ecb99360ec2abf6c74289e5af",
+    "semantic_hash": "e25ebb4ecb99360ec2abf6c74289e5af"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/controller/request/CreateNotificationTemplateRequest.java": {
+    "mtime": 1786983905.717394,
+    "ast_hash": "6d07a1bb1011df221d8d82640f86192c",
+    "semantic_hash": "6d07a1bb1011df221d8d82640f86192c"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/exception/WhatsAppApiException.java": {
+    "mtime": 1786988070.108861,
+    "ast_hash": "585576aa2d08ccdb0fce8f110a6edd2c",
+    "semantic_hash": "585576aa2d08ccdb0fce8f110a6edd2c"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/exception/WhatsAppClientException.java": {
+    "mtime": 1786988076.75878,
+    "ast_hash": "c54650614cec7e76acdf645af9b63003",
+    "semantic_hash": "c54650614cec7e76acdf645af9b63003"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/exception/WhatsAppServerException.java": {
+    "mtime": 1786988083.3786523,
+    "ast_hash": "7c636917cf12f684bf1d3031d02cce0d",
+    "semantic_hash": "7c636917cf12f684bf1d3031d02cce0d"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/filter/CachedBodyHttpServletRequest.java": {
+    "mtime": 1787200602.599877,
+    "ast_hash": "a81e533619f8343b7a78829b4511ae6f",
+    "semantic_hash": "a81e533619f8343b7a78829b4511ae6f"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/filter/WhatsAppSignatureVerificationFilter.java": {
+    "mtime": 1787200619.3173337,
+    "ast_hash": "71eeebb95d300c1b63f7212f052cf114",
+    "semantic_hash": "71eeebb95d300c1b63f7212f052cf114"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/listener/EmailEventListener.java": {
+    "mtime": 1786842154.6259458,
+    "ast_hash": "239da9eb8bfd7e02386a3bf5202b7b2c",
+    "semantic_hash": "239da9eb8bfd7e02386a3bf5202b7b2c"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/listener/WhatsAppEventListener.java": {
+    "mtime": 1786842107.6691005,
+    "ast_hash": "921a1b086866a592deb2ef321081565a",
+    "semantic_hash": "921a1b086866a592deb2ef321081565a"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/NotificationTemplateService.java": {
+    "mtime": 1786983926.4095557,
+    "ast_hash": "67c864ee5c13e34655a9a78a8a84eb7f",
+    "semantic_hash": "67c864ee5c13e34655a9a78a8a84eb7f"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/mailer/EmailOrchestratorService.java": {
+    "mtime": 1786842125.941572,
+    "ast_hash": "06a2a352c4755ba365622e7f6506efe2",
+    "semantic_hash": "06a2a352c4755ba365622e7f6506efe2"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/mailer/MailService.java": {
+    "mtime": 1771970794.3263772,
+    "ast_hash": "b9ab966402bf3f6ac357458517cbe198",
+    "semantic_hash": "b9ab966402bf3f6ac357458517cbe198"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/AbstractWhatsAppNotificationHandler.java": {
+    "mtime": 1786842070.686663,
+    "ast_hash": "41b6c86bc81fb95ca299c933c792a825",
+    "semantic_hash": "41b6c86bc81fb95ca299c933c792a825"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/KafkaWhatsAppEventPublisher.java": {
+    "mtime": 1787200646.290625,
+    "ast_hash": "e563612bd45b36416878d34d63d110d1",
+    "semantic_hash": "e563612bd45b36416878d34d63d110d1"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/WhatsAppMessageResponse.java": {
+    "mtime": 1783857604.9318552,
+    "ast_hash": "7e7e95a86bb29bc6441b23d4c4f77022",
+    "semantic_hash": "7e7e95a86bb29bc6441b23d4c4f77022"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/WhatsAppNotificationService.java": {
+    "mtime": 1786988118.347289,
+    "ast_hash": "77809c0a5ca2d897fb39b68d6e22c3aa",
+    "semantic_hash": "77809c0a5ca2d897fb39b68d6e22c3aa"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/WhatsAppPayloadReaderService.java": {
+    "mtime": 1787201570.1050117,
+    "ast_hash": "de47571bc723f05fce8037a05c3b4b23",
+    "semantic_hash": "de47571bc723f05fce8037a05c3b4b23"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/WhatsAppWamidDedupeService.java": {
+    "mtime": 1787200639.7158527,
+    "ast_hash": "848924f35232e183e6f164206160a6de",
+    "semantic_hash": "848924f35232e183e6f164206160a6de"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/templates/LeadWelcomeWhatsAppHandler.java": {
+    "mtime": 1786842094.5380921,
+    "ast_hash": "35e02d9865a0e93f3553ae1d303bddf5",
+    "semantic_hash": "35e02d9865a0e93f3553ae1d303bddf5"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/service/whatsapp/utils/WhatsAppPayloadBuilder.java": {
+    "mtime": 1786990468.0994987,
+    "ast_hash": "fb626973dafee1d4006da25da1031b52",
+    "semantic_hash": "fb626973dafee1d4006da25da1031b52"
+  },
+  "src/main/java/hn/shadowcore/mercadox/email/util/TemplateVariableValidator.java": {
+    "mtime": 1786990483.2312782,
+    "ast_hash": "382d25f6aa10fd60c2254edbf6740139",
+    "semantic_hash": "382d25f6aa10fd60c2254edbf6740139"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/MercadoXEmailApplicationTests.java": {
+    "mtime": 1771970794.1435304,
+    "ast_hash": "8572fac7ea1e051abae4aaa72868ff45",
+    "semantic_hash": "8572fac7ea1e051abae4aaa72868ff45"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/config/TestKafkaErrorHandlerConfig.java": {
+    "mtime": 1786992588.5541787,
+    "ast_hash": "ff8f50ac84ed56e000a1e7de14e70f48",
+    "semantic_hash": "ff8f50ac84ed56e000a1e7de14e70f48"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/listener/DltIntegrationTest.java": {
+    "mtime": 1786992367.8247175,
+    "ast_hash": "8b3a05f3884f4031c292b007124eda63",
+    "semantic_hash": "8b3a05f3884f4031c292b007124eda63"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/listener/WhatsAppEventListenerTest.java": {
+    "mtime": 1786997801.1124346,
+    "ast_hash": "c590e3b9a802db01ccd7ec9f1d51c0b9",
+    "semantic_hash": "c590e3b9a802db01ccd7ec9f1d51c0b9"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/service/whatsapp/WhatsAppNotificationServiceTest.java": {
+    "mtime": 1786989152.233087,
+    "ast_hash": "cfc404fc8eb8d06201679dceeb23f4ab",
+    "semantic_hash": "cfc404fc8eb8d06201679dceeb23f4ab"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/service/whatsapp/templates/LeadWelcomeWhatsAppHandlerTest.java": {
+    "mtime": 1786892913.197142,
+    "ast_hash": "b2af9ea695d1d900481dee92198b24ee",
+    "semantic_hash": "b2af9ea695d1d900481dee92198b24ee"
+  },
+  "src/test/java/hn/shadowcore/mercadox/email/service/whatsapp/utils/WhatsAppPayloadBuilderTest.java": {
+    "mtime": 1784833634.3635461,
+    "ast_hash": "b0633c65d28e9191fdff59087c8c3dce",
+    "semantic_hash": "b0633c65d28e9191fdff59087c8c3dce"
+  }
+}
