@@ -2,7 +2,6 @@ package hn.shadowcore.mercadox.email.service.whatsapp.templates;
 
 import hn.shadowcore.mercadox.email.service.whatsapp.AbstractWhatsAppNotificationHandler;
 import hn.shadowcore.mercadox.library.entity.avro.LeadCreatedEvent;
-import hn.shadowcore.mercadox.library.entity.model.enums.NotificationTemplateName;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,7 @@ public class LeadWelcomeWhatsAppHandler
 
     @Override
     public String templateKey() {
-        return NotificationTemplateName.LEAD_CREATION_TEMPLATE.name();
+        return "ALTURA_LEAD_CREATION_TEMPLATE";
     }
 
     @Override

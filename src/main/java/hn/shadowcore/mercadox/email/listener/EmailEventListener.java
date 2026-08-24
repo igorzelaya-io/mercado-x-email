@@ -5,7 +5,7 @@ import hn.shadowcore.mercadox.context.utils.annotations.KafkaOrgIdPropagated;
 import hn.shadowcore.mercadox.email.service.mailer.EmailOrchestratorService;
 import hn.shadowcore.mercadox.library.entity.avro.OrderEmailEvent;
 import hn.shadowcore.mercadox.library.entity.avro.UserRegistrationEmailEvent;
-import hn.shadowcore.mercadox.library.entity.model.enums.kafka.KafkaTopic;
+import hn.shadowcore.mercadox.library.entity.kafka.KafkaTopic;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
