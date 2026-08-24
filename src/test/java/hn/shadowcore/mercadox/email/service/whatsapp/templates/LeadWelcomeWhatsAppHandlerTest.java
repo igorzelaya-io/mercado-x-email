@@ -17,7 +17,7 @@ class LeadWelcomeWhatsAppHandlerTest {
 
     @Test
     void templateKeyIsLeadCreationTemplate() {
-        assertThat(handler.templateKey()).isEqualTo("LEAD_CREATION_TEMPLATE");
+        assertThat(handler.templateKey()).isEqualTo("ALTURA_LEAD_CREATION_TEMPLATE");
     }
 
     @Test
@@ -36,7 +36,7 @@ class LeadWelcomeWhatsAppHandlerTest {
         NotificationRequest request = handler.buildRequest(event);
 
         assertThat(request.getOrgId()).isEqualTo("org-123");
-        assertThat(request.getTemplateKey()).isEqualTo("LEAD_CREATION_TEMPLATE");
+        assertThat(request.getTemplateKey()).isEqualTo("ALTURA_LEAD_CREATION_TEMPLATE");
         assertThat(request.getPhoneNumber()).isEqualTo("+50499998888");
         assertThat(request.getVariables())
                 .containsEntry("userName", "Igor")
