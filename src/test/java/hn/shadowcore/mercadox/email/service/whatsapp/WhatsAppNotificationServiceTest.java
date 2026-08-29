@@ -1,10 +1,13 @@
 package hn.shadowcore.mercadox.email.service.whatsapp;
 
+import hn.shadowcore.mercadox.email.config.WhatsAppWebClientFactory;
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
 import hn.shadowcore.mercadox.library.entity.avro.LeadCreatedEvent;
+import hn.shadowcore.mercadox.library.entity.model.ai.OrganizationWhatsAppConfig;
 import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
 import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
+import hn.shadowcore.mercadox.library.jpa.repository.OrganizationWhatsAppConfigRepository;
 import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
 import hn.shadowcore.mercadox.email.exception.WhatsAppServerException;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +37,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class WhatsAppNotificationServiceTest {
 
+    private static final UUID ORG_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private WebClient webClient;
 
@@ -40,6 +47,12 @@ class WhatsAppNotificationServiceTest {
     // and this mock absorbs any future onStatus() additions without breaking tests.
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private WebClient.ResponseSpec responseSpec;
+
+    @Mock
+    private WhatsAppWebClientFactory webClientFactory;
+
+    @Mock
+    private OrganizationWhatsAppConfigRepository configRepository;
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
@@ -58,14 +71,14 @@ class WhatsAppNotificationServiceTest {
                 .setUserName("Igor")
                 .setEmail("igor@example.com")
                 .setPhoneNumber("+50499998888")
-                .setOrgId("org-123")
+                .setOrgId(ORG_ID.toString())
                 .setEventId(java.util.UUID.randomUUID().toString())
                 .setEventType("LEAD_CREATED")
                 .setOccurredAt(java.time.Instant.now().toString())
                 .build();
 
         request = NotificationRequest.builder()
-                .orgId("org-123")
+                .orgId(ORG_ID.toString())
                 .templateKey("LEAD_CREATION_TEMPLATE")
                 .phoneNumber("+50499998888")
                 .variables(Map.of("userName", "Igor", "orgName", "MercadoX"))
@@ -77,6 +90,9 @@ class WhatsAppNotificationServiceTest {
                 .variables(List.of("userName", "orgName"))
                 .build();
 
+        OrganizationWhatsAppConfig tenantConfig = OrganizationWhatsAppConfig.create(
+                ORG_ID, "mock-phone-number-id", "mock-waba-id", "mock-access-token", null);
+
         lenient().when(webClient.post().uri(anyString()).bodyValue(any()).retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
 
@@ -84,8 +100,11 @@ class WhatsAppNotificationServiceTest {
         lenient().when(leadWelcomeHandler.buildRequest(event)).thenReturn(request);
         lenient().when(notificationTemplateService.findByNameAndChannel("LEAD_CREATION_TEMPLATE", TemplateChannel.WHATSAPP))
                 .thenReturn(template);
+        lenient().when(configRepository.findByOrganizationId(ORG_ID)).thenReturn(Optional.of(tenantConfig));
+        lenient().when(webClientFactory.forTenant(tenantConfig)).thenReturn(webClient);
 
-        service = new WhatsAppNotificationService(webClient, notificationTemplateService, List.of(leadWelcomeHandler));
+        service = new WhatsAppNotificationService(
+                webClientFactory, configRepository, notificationTemplateService, List.of(leadWelcomeHandler));
     }
 
     @Test
@@ -106,12 +125,21 @@ class WhatsAppNotificationServiceTest {
 
     @Test
     void throwsWhenNoHandlerIsRegisteredForEventType() {
-        WhatsAppNotificationService emptyHandlerService =
-                new WhatsAppNotificationService(webClient, notificationTemplateService, List.of());
+        WhatsAppNotificationService emptyHandlerService = new WhatsAppNotificationService(
+                webClientFactory, configRepository, notificationTemplateService, List.of());
 
         assertThatThrownBy(() -> emptyHandlerService.handle(event))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("LeadCreatedEvent");
+    }
+
+    @Test
+    void throwsWhenNoTenantConfigFoundForOrganization() {
+        lenient().when(configRepository.findByOrganizationId(ORG_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.handle(event))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(ORG_ID.toString());
     }
 
     @Test

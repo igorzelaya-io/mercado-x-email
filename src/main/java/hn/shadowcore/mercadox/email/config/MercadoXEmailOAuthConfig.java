@@ -36,6 +36,7 @@ public class MercadoXEmailOAuthConfig {
                         .requestMatchers("/api/v1/public/**").permitAll()
                         // Webhook authenticated by X-Hub-Signature-256, not JWT
                         .requestMatchers("/webhook/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthFilter(jwtVerifier), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new TenantValidatorFilter(anonymousTenantValidator), JwtAuthFilter.class)

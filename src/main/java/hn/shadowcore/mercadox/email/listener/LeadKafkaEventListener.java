@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class WhatsAppEventListener {
+public class LeadKafkaEventListener {
 
     private final WhatsAppNotificationService whatsAppNotificationService;
 

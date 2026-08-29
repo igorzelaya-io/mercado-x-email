@@ -1,15 +1,17 @@
 package hn.shadowcore.mercadox.email.service.whatsapp;
 
+import hn.shadowcore.mercadox.email.config.WhatsAppWebClientFactory;
 import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
 import hn.shadowcore.mercadox.email.exception.WhatsAppServerException;
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
 import hn.shadowcore.mercadox.email.service.whatsapp.utils.WhatsAppPayloadBuilder;
+import hn.shadowcore.mercadox.library.entity.model.ai.OrganizationWhatsAppConfig;
 import hn.shadowcore.mercadox.library.entity.model.core.NotificationTemplate;
 import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
+import hn.shadowcore.mercadox.library.jpa.repository.OrganizationWhatsAppConfigRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,20 +19,24 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
 public class WhatsAppNotificationService {
 
-    private final WebClient webClient;
+    private final WhatsAppWebClientFactory webClientFactory;
+    private final OrganizationWhatsAppConfigRepository configRepository;
     private final NotificationTemplateService notificationTemplateService;
     private final List<AbstractWhatsAppNotificationHandler<?>> handlers;
 
     public WhatsAppNotificationService(
-            @Qualifier("whatsAppWebClient") WebClient webClient,
+            WhatsAppWebClientFactory webClientFactory,
+            OrganizationWhatsAppConfigRepository configRepository,
             NotificationTemplateService notificationTemplateService,
             List<AbstractWhatsAppNotificationHandler<?>> handlers) {
-        this.webClient = webClient;
+        this.webClientFactory = webClientFactory;
+        this.configRepository = configRepository;
         this.notificationTemplateService = notificationTemplateService;
         this.handlers = handlers;
     }
@@ -46,6 +52,13 @@ public class WhatsAppNotificationService {
                         + event.getClass().getSimpleName()));
 
         final NotificationRequest request = handler.buildRequest(event);
+
+        final OrganizationWhatsAppConfig tenantConfig = configRepository
+                .findByOrganizationId(UUID.fromString(request.getOrgId()))
+                .orElseThrow(() -> new IllegalStateException(
+                        "No WhatsApp configuration found for organization: " + request.getOrgId()));
+
+        final WebClient webClient = webClientFactory.forTenant(tenantConfig);
 
         final NotificationTemplate template = notificationTemplateService
                 .findByNameAndChannel(request.getTemplateKey(), TEMPLATE_CHANNEL);
