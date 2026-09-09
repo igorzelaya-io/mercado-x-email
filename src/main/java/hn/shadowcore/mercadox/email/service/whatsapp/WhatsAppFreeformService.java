@@ -1,7 +1,9 @@
 package hn.shadowcore.mercadox.email.service.whatsapp;
 
 import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
+import hn.shadowcore.mercadox.email.exception.WhatsAppRateLimitException;
 import hn.shadowcore.mercadox.email.exception.WhatsAppServerException;
+import hn.shadowcore.mercadox.email.service.whatsapp.utils.WhatsAppRetryAfterHeader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
@@ -33,6 +35,11 @@ public class WhatsAppFreeformService {
                 .uri("/messages")
                 .bodyValue(payload)
                 .retrieve()
+                .onStatus(code -> code.value() == 429, resp ->
+                        resp.bodyToMono(String.class)
+                                .defaultIfEmpty("")
+                                .map(body -> new WhatsAppRateLimitException(
+                                        resp.statusCode().value(), body, WhatsAppRetryAfterHeader.seconds(resp))))
                 .onStatus(HttpStatusCode::is4xxClientError, resp ->
                         resp.bodyToMono(String.class)
                                 .defaultIfEmpty("")

@@ -31,6 +31,10 @@ whatsapp:
     verify-token: mock-verify-token
     app-secret: mock-app-secret
 
+encryption:
+  master-key:
+    value: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=   # test-only fixture key, not a real secret
+
 kafka:
   schema-registry-url: mock://test-scope
   error-handler:

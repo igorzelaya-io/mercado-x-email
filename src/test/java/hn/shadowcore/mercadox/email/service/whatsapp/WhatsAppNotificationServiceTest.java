@@ -9,6 +9,7 @@ import hn.shadowcore.mercadox.library.entity.model.enums.TemplateChannel;
 import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 import hn.shadowcore.mercadox.library.jpa.repository.OrganizationWhatsAppConfigRepository;
 import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
+import hn.shadowcore.mercadox.email.exception.WhatsAppRateLimitException;
 import hn.shadowcore.mercadox.email.exception.WhatsAppServerException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -171,6 +172,18 @@ class WhatsAppNotificationServiceTest {
         assertThatThrownBy(() -> service.handle(event))
                 .isInstanceOf(WhatsAppClientException.class)
                 .hasMessageContaining("400");
+    }
+
+    @Test
+    void throwsWhatsAppRateLimitExceptionOn429Response_distinctFromGeneric4xx() {
+        WhatsAppRateLimitException ex = new WhatsAppRateLimitException(429, "Too Many Requests", 30L);
+        when(responseSpec.bodyToMono(WhatsAppMessageResponse.class).block(any(Duration.class)))
+                .thenThrow(ex);
+
+        assertThatThrownBy(() -> service.handle(event))
+                .isInstanceOf(WhatsAppRateLimitException.class)
+                .isNotInstanceOf(WhatsAppClientException.class)
+                .hasMessageContaining("429");
     }
 
     @Test

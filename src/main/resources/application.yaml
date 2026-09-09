@@ -40,6 +40,10 @@ whatsapp:
     verify-token: ${WHATSAPP_VERIFY_TOKEN:placeholder-verify-token}
     app-secret: ${WHATSAPP_APP_SECRET:placeholder-app-secret}
 
+encryption:
+  master-key:
+    value: ${ENCRYPTION_MASTER_KEY}
+
 kafka:
   schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8085}
 
@@ -47,4 +51,7 @@ security:
   jwt:
     public-key-location: ${JWT_PUBLIC_KEY_LOCATION:file:./secrets/public.pem}
 
+logging:
+  pattern:
+    level: "%5p [correlationId=%X{correlationId:-} eventId=%X{eventId:-}]"
 

@@ -1,12 +1,15 @@
 package hn.shadowcore.mercadox.email.listener;
 
+import hn.shadowcore.mercadox.context.utils.annotations.KafkaCorrelationIdPropagated;
 import hn.shadowcore.mercadox.context.utils.annotations.KafkaIdempotent;
 import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
+import hn.shadowcore.mercadox.email.exception.WhatsAppRateLimitException;
 import hn.shadowcore.mercadox.email.exception.WhatsAppServerException;
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
 import hn.shadowcore.mercadox.email.service.whatsapp.WhatsAppFreeformService;
 import hn.shadowcore.mercadox.email.service.whatsapp.WhatsAppMessageResponse;
 import hn.shadowcore.mercadox.email.service.whatsapp.utils.WhatsAppPayloadBuilder;
+import hn.shadowcore.mercadox.email.service.whatsapp.utils.WhatsAppRetryAfterHeader;
 import hn.shadowcore.mercadox.library.entity.avro.AiReplyGeneratedEvent;
 import hn.shadowcore.mercadox.library.entity.kafka.KafkaTopic;
 import hn.shadowcore.mercadox.library.entity.model.ai.OrganizationWhatsAppConfig;
@@ -16,6 +19,7 @@ import hn.shadowcore.mercadox.library.entity.response.dto.NotificationRequest;
 import hn.shadowcore.mercadox.library.jpa.repository.OrganizationWhatsAppConfigRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -49,28 +53,35 @@ public class AiReplyConsumerListener {
     }
 
     @KafkaIdempotent
+    @KafkaCorrelationIdPropagated
     @KafkaListener(topics = KafkaTopic.AI_REPLY_GENERATED, groupId = "whatsapp-service-group")
     public void handleAiReply(ConsumerRecord<String, AiReplyGeneratedEvent> record) {
         AiReplyGeneratedEvent event = record.value();
 
-        String sendMode  = event.getSendMode()  != null ? event.getSendMode() : "";
-        String recipient = event.getRecipient() != null ? event.getRecipient() : "";
-        String text      = event.getText()      != null ? event.getText() : "";
-        String orgId     = event.getOrgId()     != null ? event.getOrgId() : "";
+        try {
+            MDC.put("eventId", event.getEventId());
 
-        if (recipient.isBlank()) {
-            log.warn("AiReplyGeneratedEvent missing recipient — eventId={}", event.getEventId());
-            return;
+            String sendMode  = event.getSendMode()  != null ? event.getSendMode() : "";
+            String recipient = event.getRecipient() != null ? event.getRecipient() : "";
+            String text      = event.getText()      != null ? event.getText() : "";
+            String orgId     = event.getOrgId()     != null ? event.getOrgId() : "";
+
+            if (recipient.isBlank()) {
+                log.warn("AiReplyGeneratedEvent missing recipient — eventId={}", event.getEventId());
+                return;
+            }
+
+            if ("FREEFORM".equals(sendMode)) {
+                log.info("Sending freeform AI reply orgId={} recipient={}", orgId, recipient);
+                freeformService.sendText(recipient, text);
+                return;
+            }
+
+            // TEMPLATE — outside 24-hour window; send the org's default re-engagement template
+            sendReengagementTemplate(orgId, recipient);
+        } finally {
+            MDC.remove("eventId");
         }
-
-        if ("FREEFORM".equals(sendMode)) {
-            log.info("Sending freeform AI reply orgId={} recipient={}", orgId, recipient);
-            freeformService.sendText(recipient, text);
-            return;
-        }
-
-        // TEMPLATE — outside 24-hour window; send the org's default re-engagement template
-        sendReengagementTemplate(orgId, recipient);
     }
 
     private void sendReengagementTemplate(String orgId, String recipient) {
@@ -99,6 +110,11 @@ public class AiReplyConsumerListener {
                 .uri("/messages")
                 .bodyValue(payload)
                 .retrieve()
+                .onStatus(code -> code.value() == 429, resp ->
+                        resp.bodyToMono(String.class)
+                                .defaultIfEmpty("")
+                                .map(body -> new WhatsAppRateLimitException(
+                                        resp.statusCode().value(), body, WhatsAppRetryAfterHeader.seconds(resp))))
                 .onStatus(HttpStatusCode::is4xxClientError, resp ->
                         resp.bodyToMono(String.class)
                                 .defaultIfEmpty("")
