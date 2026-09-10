@@ -1,6 +1,8 @@
 package hn.shadowcore.mercadox.email.listener;
 
 import hn.shadowcore.mercadox.email.exception.WhatsAppRateLimitException;
+import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
+import hn.shadowcore.mercadox.email.exception.WhatsAppServerException;
 import hn.shadowcore.mercadox.email.service.NotificationTemplateService;
 import hn.shadowcore.mercadox.email.service.whatsapp.WhatsAppFreeformService;
 import hn.shadowcore.mercadox.library.entity.avro.AiReplyGeneratedEvent;
@@ -82,6 +84,19 @@ class AiReplyConsumerListenerTest {
     }
 
     @Test
+    void templateReply_withoutDefaultTemplateIsDropped() {
+        OrganizationWhatsAppConfig config = OrganizationWhatsAppConfig.create(
+                ORG_ID, "phone-id", "waba-id", "token", null);
+        when(configRepository.findByOrganizationId(ORG_ID)).thenReturn(Optional.of(config));
+        AiReplyConsumerListener listener = listener(webClient(HttpStatus.OK, successBody(), null));
+
+        listener.handleAiReply(record(event(RECIPIENT, "hello", "TEMPLATE", ORG_ID.toString())));
+
+        verifyNoInteractions(templateService);
+        assertThat(MDC.get("eventId")).isNull();
+    }
+
+    @Test
     void templateReply_sendsConfiguredReengagementTemplate() {
         OrganizationWhatsAppConfig config = OrganizationWhatsAppConfig.create(
                 ORG_ID, "phone-id", "waba-id", "token", "return_to_chat");
@@ -123,8 +138,44 @@ class AiReplyConsumerListenerTest {
         assertThat(MDC.get("eventId")).isNull();
     }
 
+    @Test
+    void templateReply_mapsPermanentClientFailure() {
+        AiReplyConsumerListener listener = configuredTemplateListener(
+                webClient(HttpStatus.BAD_REQUEST, "bad template", null));
+
+        assertThatThrownBy(() -> listener.handleAiReply(
+                record(event(RECIPIENT, "hello", "TEMPLATE", ORG_ID.toString()))))
+                .isInstanceOf(WhatsAppClientException.class)
+                .hasMessageContaining("400");
+    }
+
+    @Test
+    void templateReply_mapsServerFailure() {
+        AiReplyConsumerListener listener = configuredTemplateListener(
+                webClient(HttpStatus.SERVICE_UNAVAILABLE, "try later", null));
+
+        assertThatThrownBy(() -> listener.handleAiReply(
+                record(event(RECIPIENT, "hello", "TEMPLATE", ORG_ID.toString()))))
+                .isInstanceOf(WhatsAppServerException.class)
+                .hasMessageContaining("503");
+    }
+
     private AiReplyConsumerListener listener(WebClient webClient) {
         return new AiReplyConsumerListener(freeformService, configRepository, templateService, webClient);
+    }
+
+    private AiReplyConsumerListener configuredTemplateListener(WebClient webClient) {
+        OrganizationWhatsAppConfig config = OrganizationWhatsAppConfig.create(
+                ORG_ID, "phone-id", "waba-id", "token", "return_to_chat");
+        NotificationTemplate template = NotificationTemplate.builder()
+                .whatsappTemplateName("return_to_chat")
+                .languageCode("es_HN")
+                .variables(List.of())
+                .build();
+        when(configRepository.findByOrganizationId(ORG_ID)).thenReturn(Optional.of(config));
+        when(templateService.findByNameAndChannel("return_to_chat", TemplateChannel.WHATSAPP))
+                .thenReturn(template);
+        return listener(webClient);
     }
 
     private static ConsumerRecord<String, AiReplyGeneratedEvent> record(AiReplyGeneratedEvent event) {

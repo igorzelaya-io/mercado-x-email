@@ -193,18 +193,33 @@ class WhatsAppNotificationServiceTest {
 
     @Test
     void mapsActual429ResponseAndPreservesRetryAfterHeader() {
-        WebClient rateLimitedClient = WebClient.builder()
-                .exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.TOO_MANY_REQUESTS)
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-                        .header(HttpHeaders.RETRY_AFTER, "60")
-                        .body("throttled")
-                        .build()))
-                .build();
+        WebClient rateLimitedClient = responseClient(
+                HttpStatus.TOO_MANY_REQUESTS, "throttled", "60");
         when(webClientFactory.forTenant(any())).thenReturn(rateLimitedClient);
 
         assertThatThrownBy(() -> service.handle(event))
                 .isInstanceOfSatisfying(WhatsAppRateLimitException.class,
                         exception -> assertThat(exception.getRetryAfterSeconds()).isEqualTo(60L));
+    }
+
+    @Test
+    void mapsActualPermanentClientFailure() {
+        when(webClientFactory.forTenant(any()))
+                .thenReturn(responseClient(HttpStatus.BAD_REQUEST, "bad recipient", null));
+
+        assertThatThrownBy(() -> service.handle(event))
+                .isInstanceOf(WhatsAppClientException.class)
+                .hasMessageContaining("400");
+    }
+
+    @Test
+    void mapsActualServerFailure() {
+        when(webClientFactory.forTenant(any()))
+                .thenReturn(responseClient(HttpStatus.SERVICE_UNAVAILABLE, "try later", null));
+
+        assertThatThrownBy(() -> service.handle(event))
+                .isInstanceOf(WhatsAppServerException.class)
+                .hasMessageContaining("503");
     }
 
     @Test
@@ -225,5 +240,19 @@ class WhatsAppNotificationServiceTest {
                 .thenThrow(apiFailure);
 
         assertThatThrownBy(() -> service.handle(event)).isSameAs(apiFailure);
+    }
+
+    private static WebClient responseClient(HttpStatus status, String body, String retryAfter) {
+        return WebClient.builder()
+                .exchangeFunction(request -> {
+                    ClientResponse.Builder response = ClientResponse.create(status)
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                            .body(body);
+                    if (retryAfter != null) {
+                        response.header(HttpHeaders.RETRY_AFTER, retryAfter);
+                    }
+                    return Mono.just(response.build());
+                })
+                .build();
     }
 }
