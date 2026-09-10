@@ -1,9 +1,12 @@
 package hn.shadowcore.mercadox.email.config;
 
 import hn.shadowcore.mercadox.email.exception.WhatsAppClientException;
+import hn.shadowcore.mercadox.email.exception.WhatsAppRateLimitException;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -28,5 +31,18 @@ class WhatsAppErrorHandlerCustomizerTest {
         verify(errorHandler).addNotRetryableExceptions(WhatsAppClientException.class);
         verify(errorHandler).setRetryListeners(ArgumentMatchers.any(RetryListener.class));
         verifyNoMoreInteractions(errorHandler);
+    }
+
+    @Test
+    void retryListener_handlesWrappedRateLimitAndDirectFailures() {
+        new WhatsAppErrorHandlerCustomizer().customize(errorHandler);
+        ArgumentCaptor<RetryListener> listenerCaptor = ArgumentCaptor.forClass(RetryListener.class);
+        verify(errorHandler).setRetryListeners(listenerCaptor.capture());
+        RetryListener listener = listenerCaptor.getValue();
+        ConsumerRecord<String, String> record = new ConsumerRecord<>("topic", 1, 10L, "key", "value");
+
+        listener.failedDelivery(record,
+                new RuntimeException(new WhatsAppRateLimitException(429, "throttled", 30L)), 2);
+        listener.failedDelivery(record, new RuntimeException("temporary failure"), 3);
     }
 }

@@ -19,6 +19,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
@@ -184,6 +189,22 @@ class WhatsAppNotificationServiceTest {
                 .isInstanceOf(WhatsAppRateLimitException.class)
                 .isNotInstanceOf(WhatsAppClientException.class)
                 .hasMessageContaining("429");
+    }
+
+    @Test
+    void mapsActual429ResponseAndPreservesRetryAfterHeader() {
+        WebClient rateLimitedClient = WebClient.builder()
+                .exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.TOO_MANY_REQUESTS)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                        .header(HttpHeaders.RETRY_AFTER, "60")
+                        .body("throttled")
+                        .build()))
+                .build();
+        when(webClientFactory.forTenant(any())).thenReturn(rateLimitedClient);
+
+        assertThatThrownBy(() -> service.handle(event))
+                .isInstanceOfSatisfying(WhatsAppRateLimitException.class,
+                        exception -> assertThat(exception.getRetryAfterSeconds()).isEqualTo(60L));
     }
 
     @Test
