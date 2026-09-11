@@ -1,0 +1,48 @@
+package hn.alturaforge.mercadox.email.service.whatsapp.utils;
+
+import hn.alturaforge.mercadox.library.entity.model.core.NotificationTemplate;
+import hn.alturaforge.mercadox.library.entity.response.dto.NotificationRequest;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+public final class WhatsAppPayloadBuilder {
+
+    private WhatsAppPayloadBuilder() {}
+
+    public static Map<String, Object> build(
+            NotificationTemplate template,
+            NotificationRequest request
+    ) {
+
+        List<Map<String, String>> parameters =
+                Optional.ofNullable(template.getVariables())
+                        .orElse(List.of())
+                        .stream()
+                        .map(variableName -> Map.of(
+                                "type", "text",
+                                "text", request.getVariables()
+                                        .getOrDefault(variableName, "")
+                        ))
+                        .toList();
+
+        Map<String, Object> bodyComponent = Map.of(
+                "type", "body",
+                "parameters", parameters
+        );
+
+        Map<String, Object> templateObject = Map.of(
+                "name", template.getWhatsappTemplateName(),
+                "language", Map.of("code", template.getLanguageCode()),
+                "components", List.of(bodyComponent)
+        );
+
+        return Map.of(
+                "messaging_product", "whatsapp",
+                "to", request.getPhoneNumber(),
+                "type", "template",
+                "template", templateObject
+        );
+    }
+}

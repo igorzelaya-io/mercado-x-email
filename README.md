@@ -147,7 +147,7 @@ The webhook is public at the network layer but authenticated by Meta's signature
 - Java 17
 - Maven 3.8+
 - Docker and Docker Compose
-- Access to the `hn.shadowcore` packages in GitHub Packages
+- Access to the `hn.alturaforge` packages in GitHub Packages
 - PostgreSQL, Redis, Kafka, and Confluent Schema Registry
 - SMTP credentials for outbound email
 - Meta WhatsApp Business credentials for webhook verification and delivery

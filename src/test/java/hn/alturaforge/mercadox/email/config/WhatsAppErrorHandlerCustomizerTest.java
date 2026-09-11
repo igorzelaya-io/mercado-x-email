@@ -1,0 +1,48 @@
+package hn.alturaforge.mercadox.email.config;
+
+import hn.alturaforge.mercadox.email.exception.WhatsAppClientException;
+import hn.alturaforge.mercadox.email.exception.WhatsAppRateLimitException;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.RetryListener;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+@ExtendWith(MockitoExtension.class)
+class WhatsAppErrorHandlerCustomizerTest {
+
+    @Mock
+    private DefaultErrorHandler errorHandler;
+
+    @Test
+    void customize_marksOnlyWhatsAppClientExceptionAsNotRetryable() {
+        new WhatsAppErrorHandlerCustomizer().customize(errorHandler);
+
+        // The only addNotRetryableExceptions call the customizer makes — proves
+        // WhatsAppRateLimitException / WhatsAppServerException are never included,
+        // since a second call with either would fail verifyNoMoreInteractions below.
+        verify(errorHandler).addNotRetryableExceptions(WhatsAppClientException.class);
+        verify(errorHandler).setRetryListeners(ArgumentMatchers.any(RetryListener.class));
+        verifyNoMoreInteractions(errorHandler);
+    }
+
+    @Test
+    void retryListener_handlesWrappedRateLimitAndDirectFailures() {
+        new WhatsAppErrorHandlerCustomizer().customize(errorHandler);
+        ArgumentCaptor<RetryListener> listenerCaptor = ArgumentCaptor.forClass(RetryListener.class);
+        verify(errorHandler).setRetryListeners(listenerCaptor.capture());
+        RetryListener listener = listenerCaptor.getValue();
+        ConsumerRecord<String, String> record = new ConsumerRecord<>("topic", 1, 10L, "key", "value");
+
+        listener.failedDelivery(record,
+                new RuntimeException(new WhatsAppRateLimitException(429, "throttled", 30L)), 2);
+        listener.failedDelivery(record, new RuntimeException("temporary failure"), 3);
+    }
+}
